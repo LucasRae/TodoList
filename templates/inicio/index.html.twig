@@ -1,0 +1,119 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}TodoList - Home{% endblock %}
+
+{% block body %}
+
+
+
+
+<h2 id="home-titulo">Proyecto hecho con Symfony 6.4</h2>
+
+<p id="home-descripcion">
+    Este consta de las dependencias necesarias para trabajar e implementar sistemas con paginación sin conflictos con anotaciones. 
+    Si se instala las anotaciones para desarrollo (en caso de necesitarlo para crear entidades y CRUD desde comandos), recordar 
+    eliminar este complemento en producción.
+</p>
+
+<h3 id="home-profesor">Profesor: Rodriguez Gustavo</h3>
+
+
+
+
+<!-- DIV PARA CREAR TAREAS -->
+
+<div id="modal-container" style="display: none;">
+  <div class="modal-content">
+    <button class="close" onclick="cerrarModal()">×</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+
+
+<!-- SCRIPT PARA CREAR TAREAS -->
+<script>
+function abrirModalConFormulario() {
+    const modalContainer = document.getElementById('modal-container');
+    const modalBody = document.getElementById('modal-body');
+
+    const url = '{{ path("app_tarea_modal_form") }}';
+
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            modalBody.innerHTML = html;
+            modalContainer.style.display = 'flex';
+
+            const form = document.getElementById('form-tarea');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const data = new FormData(form);
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: data,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            if (response.status === 401) {
+                                alert('Debes iniciar sesión para crear tareas.');
+                                cerrarModal();
+                                return Promise.reject('No autorizado');
+                            }
+                            return Promise.reject('Error en la respuesta');
+                        }
+                        return response.json();
+                    })
+                    .then(json => {
+                        if (json.success) {
+                            alert(json.message);
+                            cerrarModal();
+                            location.reload();
+                        } else {
+                            alert(json.message || 'Error al crear tarea.');
+                        }
+                    })
+                    .catch(err => {
+                        if (err !== 'No autorizado') {
+                            alert('Error en la petición');
+                        }
+                    });
+                });
+            }
+        });
+}
+
+function cerrarModal() {
+    const modalContainer = document.getElementById('modal-container');
+    const modalBody = document.getElementById('modal-body');
+    modalContainer.style.display = 'none';
+    modalBody.innerHTML = '';
+}
+
+// Cierra modal si clic fuera del contenido
+window.addEventListener('click', function (e) {
+    const modal = document.getElementById('modal-container');
+    if (e.target === modal) {
+        cerrarModal();
+    }
+});
+
+// Cierra modal con tecla ESC
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        cerrarModal();
+    }
+});
+
+
+</script>
+
+
+
+
+{% endblock %}

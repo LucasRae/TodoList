@@ -1,0 +1,123 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mis tareas{% endblock %}
+
+{% block body %}
+<div class="tareas-header">
+    <div id="agregar-tarea-container">
+        <button id="agregar-tarea-btn" onclick="abrirModalConFormulario()">Agregar tarea +</button>
+    </div>
+
+    <div id="filtro-dropdown-container">
+        <button id="filtro-toggle-btn">🔽 Filtrar por</button>
+        <div id="filtro-menu" style="display: none;">
+            <div class="filtro-grupo">
+                <strong>Estado:</strong>
+                <ul>
+                    <li><button class="filtro-btn" data-estado="completada">✅ Completadas</button></li>
+                    <li><button class="filtro-btn" data-estado="pendiente">❌ Pendientes</button></li>
+                </ul>
+            </div>
+            <div class="filtro-grupo">
+                <strong>Tipo:</strong>
+                <ul>
+                    {% for tipo in tipos %}
+                        <li><button class="filtro-btn" data-tipo="{{ tipo.nombre|lower }}">{{ tipo.nombre }}</button></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div style="margin-top:10px;">
+                <button id="reset-filtro">🔁 Ver todas</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="tareas-tabla-contenedor">
+    <table id="tareas-tabla" style="width: 100%;">
+        <tbody>
+            {% for tarea in tareas %}
+                <tr class="tarea-row card-style"
+                    data-estado="{{ tarea.estado ? 'completada' : 'pendiente' }}"
+                    data-tipo="{{ tarea.tipo ? tarea.tipo.nombre|lower : 'sin tipo' }}">
+                    <td colspan="7" style="padding: 20px; background: #2c0000; border-radius: 15px; color: white;">
+                        
+                        <!-- TÍTULO -->
+                        <h2 class="tarea-titulo" style="margin: 0 0 10px 0;">{{ tarea.titulo }}</h2>
+                        
+                        <!-- DESCRIPCIÓN -->
+                        <p class="tarea-descripcion" style="margin: 0 0 15px 0;">{{ tarea.descripcion }}</p>
+                        
+                        <!-- FILA TIPO - FECHAS -->
+                        <div class="tarea-meta" style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
+                            <div class="tarea-tipo" style="background: #e11e1e; padding: 4px 12px; border-radius: 15px; font-weight: 600; font-size: 0.9em;">
+                                {{ tarea.tipo ? tarea.tipo.nombre : 'Sin tipo' }}
+                            </div>
+                            <div class="tarea-fecha-creacion" style="font-size: 0.9em; opacity: 0.8;">
+                                <strong>Inicio:</strong> {{ tarea.fechaCreacion ? tarea.fechaCreacion|date('d/m/Y') : '-' }}
+                            </div>
+                            <div class="tarea-fecha-final" style="font-size: 0.9em; opacity: 0.8;">
+                                <strong>Fin:</strong> {{ tarea.fechaFinal ? tarea.fechaFinal|date('d/m/Y') : '-' }}
+                            </div>
+                        </div>
+
+                        <!-- FILA ESTADO Y ACCIONES -->
+                        <div class="tarea-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="tarea-estado" style="font-weight: 600; font-size: 1.1em;">
+                                {{ tarea.estado ? '✔️ Completada' : '❌ Pendiente' }}
+                            </div>
+                            <div class="tarea-acciones">
+                                <a href="{{ path('app_tarea_edit', {'id': tarea.id}) }}" class="accion-icono editar" style="color: white; margin-right: 15px; font-size: 1.3em;">✏️</a>
+                                <a href="{{ path('app_tarea_delete', {'id': tarea.id}) }}" class="accion-icono eliminar" style="color: white; font-size: 1.3em;">🗑️</a>
+                            </div>
+                        </div>
+
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="7" style="text-align: center;">No hay tareas cargadas.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtn = document.getElementById('filtro-toggle-btn');
+    const filtroMenu = document.getElementById('filtro-menu');
+    const filas = document.querySelectorAll('.tarea-row');
+    const resetBtn = document.getElementById('reset-filtro');
+
+    toggleBtn.addEventListener('click', () => {
+        filtroMenu.style.display = filtroMenu.style.display === 'none' ? 'block' : 'none';
+    });
+
+    function filtrarTabla({ tipo = null, estado = null }) {
+        filas.forEach(fila => {
+            const tipoFila = fila.dataset.tipo;
+            const estadoFila = fila.dataset.estado;
+            let mostrar = true;
+
+            if (tipo && tipo !== tipoFila) mostrar = false;
+            if (estado && estado !== estadoFila) mostrar = false;
+
+            fila.style.display = mostrar ? '' : 'none';
+        });
+    }
+
+    document.querySelectorAll('.filtro-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tipo = btn.dataset.tipo || null;
+            const estado = btn.dataset.estado || null;
+            filtrarTabla({ tipo, estado });
+            filtroMenu.style.display = 'none';
+        });
+    });
+
+    resetBtn.addEventListener('click', () => {
+        filas.forEach(fila => fila.style.display = '');
+        filtroMenu.style.display = 'none';
+    });
+});
+</script>
+{% endblock %}

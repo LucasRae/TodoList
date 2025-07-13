@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tarea index{% endblock %}
+
+{% block body %}
+    <div class="tarea-container">
+        <h1 id="tarea-index-title">Listado de Tareas</h1>
+
+        <table class="table">
+            <thead>
+                <tr class="th">
+                    <th>Id</th>
+                    <th>Título</th>
+                    <th>Descripción</th>
+                    <th>Fecha creación</th>
+                    <th>Fecha límite</th>
+                    <th>Estado</th>
+                    <th>Tipo(s)</th>
+                    <th>Usuario(s)</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for tarea in tareas %}
+                <tr class="tr">
+                    <td>{{ tarea.id }}</td>
+                    <td>{{ tarea.titulo }}</td>
+                    <td>{{ tarea.descripcion }}</td>
+                    <td>{{ tarea.fechaCreacion ? tarea.fechaCreacion|date('Y-m-d H:i') : '' }}</td>
+                    <td>{{ tarea.fechaFinal ? tarea.fechaFinal|date('Y-m-d H:i') : '' }}</td>
+                    <td>{{ tarea.estado ? '✔ Completada' : '⏳ Pendiente' }}</td>
+                    <td>
+                        {% if tarea.tipo %}
+                            <span class="tipo-chip">{{ tarea.tipo.nombre }}</span>
+                        {% else %}
+                            <em>Sin tipo</em>
+                        {% endif %}
+                    </td>
+                   <td>
+    {% for admin in tarea.user %}
+        {{ admin.nombre }}{% if not loop.last %}, {% endif %}
+    {% else %}
+        Sin usuarios asignados
+    {% endfor %}
+</td>
+
+                    <td>
+                        <a class="btn-accion" href="{{ path('app_tarea_show', {'id': tarea.id}) }}">Ver</a>
+                        <a class="btn-accion" href="{{ path('app_tarea_edit', {'id': tarea.id}) }}">Editar</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="8">No se encontraron tareas.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="botonera">
+            <a href="{{ path('app_tarea_new') }}" class="btn-crear">➕ Crear nueva tarea</a>
+        </div>
+    </div>
+{% endblock %}
